@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Chachao 每日营业上报</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0b;
+    --surface: #181610;
+    --card: #1e1c17;
+    --border: #2a2720;
+    --border-light: #333028;
+    --gold: #c9a84c;
+    --gold-dim: rgba(201,168,76,0.15);
+    --gold-glow: rgba(201,168,76,0.06);
+    --cream: #f0e8d4;
+    --muted: #6b6355;
+    --muted2: #4a4438;
+    --green: #4a9b6f;
+    --green-bg: rgba(74,155,111,0.1);
+    --red: #b85a4a;
+    --red-bg: rgba(184,90,74,0.1);
+    --blue: #4a82b5;
+    --blue-bg: rgba(74,130,181,0.1);
+    --input-bg: #151310;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #141208 0%, var(--bg) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--cream);
+    letter-spacing: -0.3px;
+  }
+  .store-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+  }
+  .store-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── Store selector ── */
+  .store-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .store-btn {
+    padding: 14px 8px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .store-btn:hover { color: var(--cream); }
+  .store-btn.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    background: var(--gold-glow);
+  }
+
+  /* ── Form body ── */
+  .form-body { padding: 0 16px; }
+
+  /* ── Section ── */
+  .section {
+    margin-top: 24px;
+  }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .section-label span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Field grid ── */
+  .field-grid {
+    display: grid;
+    gap: 10px;
+  }
+  .col-2 { grid-template-columns: 1fr 1fr; }
+  .col-1 { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .field label .req { color: var(--gold); margin-left: 2px; }
+
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    color: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    background: #1a1710;
+  }
+  select { cursor: pointer; }
+  textarea { resize: none; line-height: 1.6; font-size: 13px; }
+
+  /* number input: hide arrows */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* prefix input */
+  .input-wrap {
+    position: relative;
+  }
+  .input-prefix {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .input-wrap input { padding-left: 26px; }
+
+  /* ── Divider row ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0 4px;
+  }
+
+  /* ── Auto-calc display ── */
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--gold-glow);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius);
+    margin-top: 6px;
+  }
+  .calc-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .calc-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .calc-sub {
+    font-size: 10px;
+    color: var(--muted2);
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Grand total ── */
+  .grand-total {
+    background: var(--card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .grand-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .grand-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: -1px;
+  }
+  .grand-cups {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .grand-cups span { color: var(--cream); }
+
+  /* ── Commission display ── */
+  .commission-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .commission-pill {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .commission-pill .cp-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+  }
+  .commission-pill .cp-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--red);
+  }
+
+  /* ── Toggle options ── */
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+  }
+  .toggle-opt {
+    flex: 1;
+    padding: 9px 6px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .toggle-opt.sel-green { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .toggle-opt.sel-red   { background: var(--red-bg);   border-color: var(--red);   color: var(--red); }
+  .toggle-opt.sel-gold  { background: var(--gold-dim);  border-color: var(--gold);  color: var(--gold); }
+
+  /* weather / traffic icons row */
+  .icon-group {
+    display: flex;
+    gap: 8px;
+  }
+  .icon-opt {
+    flex: 1;
+    padding: 10px 4px 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    line-height: 1.6;
+  }
+  .icon-opt .ico { font-size: 18px; display: block; margin-bottom: 2px; }
+  .icon-opt.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+  /* ── Alert ── */
+  .alert-field {
+    display: none;
+    margin-top: 8px;
+  }
+  .alert-field.show { display: block; }
+
+  /* ── Submit ── */
+  .submit-wrap {
+    padding: 24px 16px 0;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--gold);
+    border: none;
+    border-radius: var(--radius);
+    color: #0f0e0b;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .submit-btn:hover { background: #d4b55e; }
+  .submit-btn:active { transform: scale(0.98); }
+
+  /* ── Success overlay ── */
+  .success-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 999;
+  }
+  .success-screen.show { display: flex; }
+  .success-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    border: 1px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .success-screen h2 {
+    font-size: 18px;
+    color: var(--cream);
+    font-weight: 500;
+  }
+  .success-screen p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.8;
+  }
+  .success-screen .gold-line {
+    width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .reset-btn {
+    margin-top: 8px;
+    padding: 10px 28px;
+    background: none;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+
+  /* ── Validation ── */
+  input.err, select.err { border-color: var(--red) !important; }
+  .err-msg {
+    font-size: 10px;
+    color: var(--red);
+    font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+    display: none;
+  }
+  .err-msg.show { display: block; }
+
+  .today-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Success screen -->
+
+<div id="pwScreen" style="position:fixed;inset:0;background:#0f0e0b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9999;">
+  <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;color:#c9a84c;">CHACHAO</div>
+  <div style="font-size:18px;color:#f0e8d4;font-weight:500;">每日营业上报</div>
+  <div style="font-family:'DM Mono',monospace;font-size:12px;color:#6b6355;letter-spacing:1px;">Toa Payoh</div>
+  <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);"></div>
+  <div style="display:flex;flex-direction:column;gap:8px;width:240px;">
+    <input id="pwInput" type="password" placeholder="请输入密码" 
+      style="background:#151310;border:1px solid #333028;border-radius:6px;color:#f0e8d4;font-family:'DM Mono',monospace;font-size:14px;padding:12px 16px;outline:none;text-align:center;letter-spacing:4px;width:100%;"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="pwErr" style="font-family:'DM Mono',monospace;font-size:11px;color:#b85a4a;text-align:center;display:none;">密码错误，请重试</div>
+    <button onclick="checkPw()" style="background:#c9a84c;border:none;border-radius:6px;color:#0f0e0b;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:2px;padding:12px;cursor:pointer;">进 入</button>
+  </div>
+</div>
+
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✓</div>
+  <div class="gold-line"></div>
+  <h2>数据已提交</h2>
+  <p id="successDetail">Toa Payoh<br>2026-05-30 · 合计 $0.00</p>
+  <div class="gold-line"></div>
+  <p style="font-size:11px;">数据已自动存入 Google Sheets<br>感谢今日辛勤工作</p>
+  <button class="reset-btn" onclick="resetForm()">← 重新填写</button>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="brand">CHACHAO — DAILY REPORT</div>
+  <h1>每日营业数据上报</h1>
+  <div class="store-badge">
+    <div class="store-dot"></div>
+    <span id="headerStore">Toa Payoh</span>
+  <span style="font-family:'DM Mono',monospace;font-size:10px;color:#4a9b6f;margin-left:8px;">🔒 已锁定</span>
+  </div>
+</div>
+
+<!-- Store selector -->
+<div class="store-selector" style="display:none">
+  <button class="store-btn active" onclick="selectStore('Toa Payoh', this)">Toa<br>Payoh</button>
+  <button class="store-btn" onclick="selectStore('Seletar Mall', this)">Seletar<br>Mall</button>
+  <button class="store-btn" onclick="selectStore('313 Somerset', this)">313<br>Somerset</button>
+</div>
+
+<div class="form-body">
+
+  <!-- 基本信息 -->
+  <div class="section">
+    <div class="section-label">
+      <span>基本信息</span><div class="section-line"></div>
+    </div>
+    <div class="field-grid col-2">
+      <div class="field" style="grid-column:1/-1;">
+        <label>日期 <span class="req">*</span><span class="today-tag" id="todayTag"></span></label>
+        <input type="date" id="date" required>
+        <span class="err-msg" id="dateErr">请选择日期</span>
+      </div>
+      <div class="field">
+        <label>天气</label>
+        <div class="icon-group" id="weatherGroup">
+          <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">☀️</span>晴</div>
+          <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">⛅</span>多云</div>
+          <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">🌧️</span>雨</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>店铺人流</label>
+        <div class="icon-group" id="trafficGroup">
+          <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">🧍</span>低</div>
+          <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">👥</span>中</div>
+          <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">🏃</span>高</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>员工出勤人数</label>
+        <input type="number" id="staffCount" placeholder="0" min="0" max="20">
+      </div>
+      <div class="field">
+        <label>售出杯数 <span class="req">*</span></label>
+        <input type="number" id="cups" placeholder="0" min="0" oninput="calc()">
+        <span class="err-msg" id="cupsErr">请填写售出杯数</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 店内销售 -->
+  <div class="section">
+    <div class="section-label">
+      <span>店内销售</span><div class="section-line"></div>
+    </div>
+    <div class="field-grid col-1">
+      <div class="field">
+        <label>店内营业额 <span class="req">*</span></label>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="storeRevenue" placeholder="0.00" step="0.01" oninput="calc()">
+        </div>
+        <span class="err-msg" id="revenueErr">请填写营业额</span>
+      </div>
+      <div class="field-grid col-2">
+        <div class="field">
+          <label>折扣金额</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="discount" placeholder="0.00" step="0.01" oninput="calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label>实收金额</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="storeActual" placeholder="0.00" step="0.01" oninput="calc()">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 外卖平台 -->
+  <div class="section">
+    <div class="section-label">
+      <span>外卖平台</span><div class="section-line"></div>
+    </div>
+    <div class="field-grid col-2">
+      <div class="field">
+        <label>Grab 销售额</label>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="grabSales" placeholder="0.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Grab 实收</label>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="grabActual" placeholder="0.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Panda 销售额</label>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="pandaSales" placeholder="0.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Panda 实收</label>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="pandaActual" placeholder="0.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-calc: delivery -->
+    <div class="calc-row" style="margin-top:12px;">
+      <div>
+        <div class="calc-label">外卖总销售额</div>
+        <div class="calc-sub" id="commissionNote">Grab + Panda</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="calc-value" id="deliveryTotal">$0.00</div>
+        <div class="calc-sub" id="deliveryActualNote">实收 $0.00</div>
+      </div>
+    </div>
+    <div class="commission-row">
+      <div class="commission-pill">
+        <div class="cp-label">GRAB 佣金率</div>
+        <div class="cp-val" id="grabComm">—</div>
+      </div>
+      <div class="commission-pill">
+        <div class="cp-label">PANDA 佣金率</div>
+        <div class="cp-val" id="pandaComm">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 汇总 -->
+  <div class="section">
+    <div class="section-label">
+      <span>当日汇总</span><div class="section-line"></div>
+    </div>
+    <div class="grand-total">
+      <div class="grand-label">合计总营业额</div>
+      <div class="grand-value" id="grandTotal">$0.00</div>
+      <div class="grand-cups" id="avgPrice">售出 <span id="cupsDisplay">0</span> 杯 · 客单价 <span id="avgPriceVal">—</span></div>
+    </div>
+  </div>
+
+  <!-- 运营情况 -->
+  <div class="section">
+    <div class="section-label">
+      <span>运营情况</span><div class="section-line"></div>
+    </div>
+    <div class="field-grid col-1" style="gap:12px;">
+      <div class="field">
+        <label>物料是否有缺货</label>
+        <div class="toggle-group" id="stockGroup">
+          <div class="toggle-opt" onclick="pickToggle('stockGroup', this, 'sel-green')">✓ 正常</div>
+          <div class="toggle-opt" onclick="pickToggle('stockGroup', this, 'sel-red')" id="stockShortBtn">! 有缺货</div>
+        </div>
+      </div>
+      <div class="alert-field" id="stockDetail">
+        <div class="field">
+          <label>缺货品名</label>
+          <input type="text" id="stockItems" placeholder="请填写缺货物料名称，逗号分隔">
+        </div>
+      </div>
+      <div class="field">
+        <label>设备是否异常</label>
+        <div class="toggle-group" id="equipGroup">
+          <div class="toggle-opt" onclick="pickToggle('equipGroup', this, 'sel-green')">✓ 正常</div>
+          <div class="toggle-opt" onclick="pickToggle('equipGroup', this, 'sel-red')">! 有异常</div>
+        </div>
+      </div>
+      <div class="alert-field" id="equipDetail">
+        <div class="field">
+          <label>设备异常描述</label>
+          <input type="text" id="equipDesc" placeholder="请描述设备问题">
+        </div>
+      </div>
+      <div class="field">
+        <label>备注</label>
+        <textarea id="remarks" rows="3" placeholder="其他特殊情况、活动促销、顾客反馈…"></textarea>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /form-body -->
+
+<div class="submit-wrap">
+  <button class="submit-btn" onclick="submitForm()">提 交 今 日 数 据</button>
+</div>
+
+<script>
+  let currentStore = 'Toa Payoh';
+  let weather = '';
+  let traffic = '';
+  let stockStatus = '';
+  let equipStatus = '';
+
+  // Set today's date
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('todayTag').textContent = '今日';
+
+  function selectStore(name, btn) {
+    currentStore = name;
+    document.getElementById('headerStore').textContent = name;
+    document.querySelectorAll('.store-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function pickIcon(groupId, el, cls) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.icon-opt').forEach(o => o.classList.remove('active', 'sel-gold', 'sel-green', 'sel-red'));
+    el.classList.add('active', cls);
+    if (groupId === 'weatherGroup') weather = el.querySelector('.ico').nextSibling.textContent.trim();
+    if (groupId === 'trafficGroup') traffic = el.querySelector('.ico').nextSibling.textContent.trim();
+  }
+
+  function pickToggle(groupId, el, cls) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.toggle-opt').forEach(o => o.classList.remove('sel-green','sel-red','sel-gold'));
+    el.classList.add(cls);
+    const val = el.textContent.trim().includes('正常') ? '正常' : '异常/缺货';
+    if (groupId === 'stockGroup') {
+      stockStatus = val;
+      document.getElementById('stockDetail').classList.toggle('show', cls === 'sel-red');
+    }
+    if (groupId === 'equipGroup') {
+      equipStatus = val;
+      document.getElementById('equipDetail').classList.toggle('show', cls === 'sel-red');
+    }
+  }
+
+  function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+  function fmt(v) { return '$' + v.toFixed(2); }
+
+  function calc() {
+    const grabS = n('grabSales'), grabA = n('grabActual');
+    const pandaS = n('pandaSales'), pandaA = n('pandaActual');
+    const storeA = n('storeActual') || (n('storeRevenue') - n('discount'));
+    const cups = parseInt(document.getElementById('cups').value) || 0;
+
+    const delivS = grabS + pandaS;
+    const delivA = grabA + pandaA;
+    const grand = storeA + delivA;
+
+    document.getElementById('deliveryTotal').textContent = fmt(delivS);
+    document.getElementById('deliveryActualNote').textContent = '实收 ' + fmt(delivA);
+    document.getElementById('grandTotal').textContent = fmt(grand);
+    document.getElementById('cupsDisplay').textContent = cups;
+
+    // Avg price
+    if (cups > 0) {
+      document.getElementById('avgPriceVal').textContent = fmt(grand / cups);
+    } else {
+      document.getElementById('avgPriceVal').textContent = '—';
+    }
+
+    // Commission
+    if (grabS > 0) {
+      const rate = ((grabS - grabA) / grabS * 100).toFixed(1);
+      document.getElementById('grabComm').textContent = rate + '%';
+    } else {
+      document.getElementById('grabComm').textContent = '—';
+    }
+    if (pandaS > 0) {
+      const rate = ((pandaS - pandaA) / pandaS * 100).toFixed(1);
+      document.getElementById('pandaComm').textContent = rate + '%';
+    } else {
+      document.getElementById('pandaComm').textContent = '—';
+    }
+  }
+
+  function validate() {
+    let ok = true;
+    const checks = [
+      ['date','dateErr','请选择日期'],
+      ['storeRevenue','revenueErr','请填写营业额'],
+      ['cups','cupsErr','请填写售出杯数'],
+    ];
+    checks.forEach(([id, errId, msg]) => {
+      const el = document.getElementById(id);
+      const err = document.getElementById(errId);
+      if (!el.value || el.value === '') {
+        el.classList.add('err');
+        err.classList.add('show');
+        ok = false;
+      } else {
+        el.classList.remove('err');
+        err.classList.remove('show');
+      }
+    });
+    return ok;
+  }
+
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi4oirhe4mlzZTFHzcdfwBMRwLsQTb-V9FykRpMZHePkiCS_TuC5n8Ord_VYggHzqp5A/exec';
+
+  function submitForm() {
+    if (!validate()) return;
+
+    const data = {
+      store: currentStore,
+      date: document.getElementById('date').value,
+      weather, traffic,
+      staff: n('staffCount'),
+      cups: parseInt(document.getElementById('cups').value) || 0,
+      storeRevenue: n('storeRevenue'),
+      discount: n('discount'),
+      storeActual: n('storeActual'),
+      grabSales: n('grabSales'), grabActual: n('grabActual'),
+      pandaSales: n('pandaSales'), pandaActual: n('pandaActual'),
+      deliveryTotal: n('grabSales') + n('pandaSales'),
+      deliveryActual: n('grabActual') + n('pandaActual'),
+      grandTotal: (n('storeActual') || n('storeRevenue') - n('discount')) + n('grabActual') + n('pandaActual'),
+      stockStatus, stockItems: document.getElementById('stockItems').value,
+      equipStatus, equipDesc: document.getElementById('equipDesc').value,
+      remarks: document.getElementById('remarks').value,
+      submittedAt: new Date().toISOString(),
+    };
+
+    // 禁用提交按钮，显示发送中
+    const btn = document.querySelector('.submit-btn');
+    btn.textContent = '正 在 提 交 …';
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+
+    // 用 GET 参数方式发送（绕过 CORS）
+    const url = SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
+    const img = new Image();
+    img.src = url;
+
+    // 等待 1.5 秒后显示成功（Apps Script 处理很快）
+    setTimeout(() => {
+      const grand = data.grandTotal;
+      document.getElementById('successDetail').innerHTML =
+        data.store + '<br>' + data.date + ' &nbsp;·&nbsp; 合计 ' + fmt(grand) + '<br>' + data.cups + ' 杯';
+      document.getElementById('successScreen').classList.add('show');
+      btn.textContent = '提 交 今 日 数 据';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }, 1500);
+  }
+
+  function resetForm() {
+    document.getElementById('successScreen').classList.remove('show');
+    // reset fields
+    ['storeRevenue','discount','storeActual','grabSales','grabActual',
+     'pandaSales','pandaActual','cups','staffCount','stockItems','equipDesc','remarks']
+      .forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('.icon-opt').forEach(o => o.classList.remove('active','sel-gold'));
+    document.querySelectorAll('.toggle-opt').forEach(o => o.classList.remove('sel-green','sel-red','sel-gold'));
+    document.getElementById('stockDetail').classList.remove('show');
+    document.getElementById('equipDetail').classList.remove('show');
+    weather = ''; traffic = ''; stockStatus = ''; equipStatus = '';
+    calc();
+  }
+
+  calc();
+
+  // 密码保护
+  var STORE_PWD = 'tp2024';
+  var STORE_NAME = 'Toa Payoh';
+
+  function checkPw() {
+    var val = document.getElementById('pwInput').value;
+    if (val === STORE_PWD) {
+      document.getElementById('pwScreen').style.display = 'none';
+      sessionStorage.setItem('cc_auth', STORE_NAME);
+    } else {
+      document.getElementById('pwErr').style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+
+  // 已登录则直接跳过密码
+  if (sessionStorage.getItem('cc_auth') === STORE_NAME) {
+    document.getElementById('pwScreen').style.display = 'none';
+  }
+
+</script>
+</body>
+</html>
