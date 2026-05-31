@@ -809,21 +809,23 @@
     btn.disabled = true;
     btn.style.opacity = '0.6';
 
-    // 用 GET 参数方式发送（绕过 CORS）
     const url = SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
-    const img = new Image();
-    img.src = url;
 
-    // 等待 1.5 秒后显示成功（Apps Script 处理很快）
-    setTimeout(() => {
-      const grand = data.grandTotal;
-      document.getElementById('successDetail').innerHTML =
-        data.store + '<br>' + data.date + ' &nbsp;·&nbsp; 合计 ' + fmt(grand) + '<br>' + data.cups + ' 杯';
-      document.getElementById('successScreen').classList.add('show');
-      btn.textContent = '提 交 今 日 数 据';
-      btn.disabled = false;
-      btn.style.opacity = '1';
-    }, 1500);
+    fetch(url, { method: 'GET', mode: 'no-cors' })
+      .then(function() {
+        const grand = data.grandTotal;
+        document.getElementById('successDetail').innerHTML =
+          data.store + '<br>' + data.date + ' &nbsp;·&nbsp; 合计 ' + fmt(grand) + '<br>' + data.cups + ' 杯';
+        document.getElementById('successScreen').classList.add('show');
+      })
+      .catch(function() {
+        alert('提交失败，请检查网络后重试');
+      })
+      .finally(function() {
+        btn.textContent = '提 交 今 日 数 据';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
   }
 
   function resetForm() {
