@@ -494,24 +494,27 @@
         <span class="err-msg" id="dateErr">请选择日期</span>
       </div>
       <div class="field">
-        <label>天气</label>
+        <label>天气 <span class="req">*</span></label>
         <div class="icon-group" id="weatherGroup">
           <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">☀️</span>晴</div>
           <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">⛅</span>多云</div>
           <div class="icon-opt" onclick="pickIcon('weatherGroup', this, 'sel-gold')"><span class="ico">🌧️</span>雨</div>
         </div>
+        <span class="err-msg" id="weatherGroupErr" style="display:none;font-size:10px;color:var(--red);font-family:'DM Mono',monospace;margin-top:4px;">请选择天气</span>
       </div>
       <div class="field">
-        <label>店铺人流</label>
+        <label>店铺人流 <span class="req">*</span></label>
         <div class="icon-group" id="trafficGroup">
           <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">🧍</span>低</div>
           <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">👥</span>中</div>
           <div class="icon-opt" onclick="pickIcon('trafficGroup', this, 'sel-gold')"><span class="ico">🏃</span>高</div>
         </div>
+        <span class="err-msg" id="trafficGroupErr" style="display:none;font-size:10px;color:var(--red);font-family:'DM Mono',monospace;margin-top:4px;">请选择人流</span>
       </div>
       <div class="field">
-        <label>员工出勤人数</label>
+        <label>员工出勤人数 <span class="req">*</span></label>
         <input type="number" id="staffCount" placeholder="0" min="0" max="20">
+        <span class="err-msg" id="staffErr">请填写出勤人数</span>
       </div>
       <div class="field">
         <label>售出杯数 <span class="req">*</span></label>
@@ -561,28 +564,28 @@
     </div>
     <div class="field-grid col-2">
       <div class="field">
-        <label>Grab 销售额</label>
+        <label>Grab 销售额 <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-prefix">$</span>
           <input type="number" id="grabSales" placeholder="0.00" step="0.01" oninput="calc()">
         </div>
       </div>
       <div class="field">
-        <label>Grab 实收</label>
+        <label>Grab 实收 <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-prefix">$</span>
           <input type="number" id="grabActual" placeholder="0.00" step="0.01" oninput="calc()">
         </div>
       </div>
       <div class="field">
-        <label>Panda 销售额</label>
+        <label>Panda 销售额 <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-prefix">$</span>
           <input type="number" id="pandaSales" placeholder="0.00" step="0.01" oninput="calc()">
         </div>
       </div>
       <div class="field">
-        <label>Panda 实收</label>
+        <label>Panda 实收 <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-prefix">$</span>
           <input type="number" id="pandaActual" placeholder="0.00" step="0.01" oninput="calc()">
@@ -632,11 +635,12 @@
     </div>
     <div class="field-grid col-1" style="gap:12px;">
       <div class="field">
-        <label>物料是否有缺货</label>
+        <label>物料是否有缺货 <span class="req">*</span></label>
         <div class="toggle-group" id="stockGroup">
           <div class="toggle-opt" onclick="pickToggle('stockGroup', this, 'sel-green')">✓ 正常</div>
           <div class="toggle-opt" onclick="pickToggle('stockGroup', this, 'sel-red')" id="stockShortBtn">! 有缺货</div>
         </div>
+        <span class="err-msg" id="stockGroupErr" style="display:none;font-size:10px;color:var(--red);font-family:'DM Mono',monospace;margin-top:4px;">请选择物料状态</span>
       </div>
       <div class="alert-field" id="stockDetail">
         <div class="field">
@@ -645,11 +649,12 @@
         </div>
       </div>
       <div class="field">
-        <label>设备是否异常</label>
+        <label>设备是否异常 <span class="req">*</span></label>
         <div class="toggle-group" id="equipGroup">
           <div class="toggle-opt" onclick="pickToggle('equipGroup', this, 'sel-green')">✓ 正常</div>
           <div class="toggle-opt" onclick="pickToggle('equipGroup', this, 'sel-red')">! 有异常</div>
         </div>
+        <span class="err-msg" id="equipGroupErr" style="display:none;font-size:10px;color:var(--red);font-family:'DM Mono',monospace;margin-top:4px;">请选择设备状态</span>
       </div>
       <div class="alert-field" id="equipDetail">
         <div class="field">
@@ -809,23 +814,26 @@
     btn.disabled = true;
     btn.style.opacity = '0.6';
 
-    const url = SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
-
-    fetch(url, { method: 'GET', mode: 'no-cors' })
-      .then(function() {
-        const grand = data.grandTotal;
-        document.getElementById('successDetail').innerHTML =
-          data.store + '<br>' + data.date + ' &nbsp;·&nbsp; 合计 ' + fmt(grand) + '<br>' + data.cups + ' 杯';
-        document.getElementById('successScreen').classList.add('show');
-      })
-      .catch(function() {
-        alert('提交失败，请检查网络后重试');
-      })
-      .finally(function() {
-        btn.textContent = '提 交 今 日 数 据';
-        btn.disabled = false;
-        btn.style.opacity = '1';
-      });
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data)
+    })
+    .then(function() {
+      const grand = data.grandTotal;
+      document.getElementById('successDetail').innerHTML =
+        data.store + '<br>' + data.date + ' &nbsp;·&nbsp; 合计 ' + fmt(grand) + '<br>' + data.cups + ' 杯';
+      document.getElementById('successScreen').classList.add('show');
+    })
+    .catch(function() {
+      alert('提交失败，请检查网络后重试');
+    })
+    .finally(function() {
+      btn.textContent = '提 交 今 日 数 据';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
   }
 
   function resetForm() {
